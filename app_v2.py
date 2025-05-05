@@ -1,4 +1,10 @@
 import streamlit as st
+
+# app_v2.py
+import visuals_v2
+visuals_v2.load_custom_css()
+
+
 import requests
 from textblob import TextBlob
 
