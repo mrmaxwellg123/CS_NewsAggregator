@@ -14,9 +14,14 @@ st.markdown("""
 }
 
 /* 🌟 Title + headings = light gray */
-h1, h2, h3 {
+h1, h2 {
     color: #ECECEC !important;
 }
+
+h3 {
+    color: #2C2C54 !important;
+}
+
 
 /* ✅ Button styling */
 .stButton > button {
@@ -36,7 +41,7 @@ div[data-baseweb="select"] {
 
 /* ✅ News card background: cool gray */
 .news-card {
-    background-color: #AAABB8;
+    background-color: #ECECEC;
     border-radius: 20px;
     padding: 1.5em;
     margin-top: 1.2em;
@@ -67,6 +72,7 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
+
 # Function to convert sentiment to stars
 def get_star_rating(score):
     normalized = (score + 1) / 2 * 5  # Convert -1..1 to 0..5 scale
@@ -85,9 +91,22 @@ def fetch_news(api_key="5a3db5e60eca4943ab7c723d64f69754", topic="business"):
     return news_data["articles"]
 
 # Dropdown and button
-topic = st.selectbox("", ["business", "technology", "sports"])
+topic = st.selectbox("", ["technology", "science", "business", "culture", "politics", "entertainment", "fashion", "environment", "sport", "weather"])
 if st.button("Load News"):
-    st.write(f"↗️ Fetching {topic} news...")
+    st.markdown(f"""
+    <div style='
+        background-color: #2C2C54;
+        color: #ECECEC;
+        padding: 0.6em 1em;
+        border-radius: 8px;
+        font-family: Georgia, serif;
+        margin-bottom: 1em;
+        display: inline-block;
+    '>
+    🔄 Fetching <b>{topic}</b> news...
+    </div>
+    """, unsafe_allow_html=True)
+
     articles = fetch_news(topic=topic)
 
     for article in articles[:5]:  # Top 5
@@ -96,7 +115,7 @@ if st.button("Load News"):
 
         card_html = f'''
         <div class="news-card">
-            <h3>{article["title"]}</h3>
+            <h3 style="color: #2C2C54 !important;">{article["title"]}</h3>
             <p style='color: #474787;'>{description}</p>
             <div class="sentiment-box">Sentiment: {get_star_rating(sentiment)}</div>
             <p style="font-size: 0.85em; color: gray; margin-top: 1em;">
