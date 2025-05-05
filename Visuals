@@ -1,1 +1,58 @@
+st.set_page_config(page_title="katchupOTN", layout="centered") #for the title to be centered
 
+# Custom CSS for background, fonts, dropdowns, buttons, etc. 
+st.markdown("""
+<style>
+body {
+    background: linear-gradient(180deg, #fff3ec, #fbe4e4);
+}
+html, body, [class*="css"] {
+    font-family: 'Georgia', serif;
+}
+h1, h2, h3 {
+    color: #985f45;
+}
+.stButton > button {
+    background-color: #c3826e;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 0.6em 2em;
+    border: none;
+}
+div[data-baseweb="select"] {
+    font-family: 'Georgia', serif;
+    font-size: 1.05em;
+}
+.stSelectbox {
+    background-color: white;
+    border: 1px solid #e5cfc7;
+    border-radius: 8px;
+}
+.news-card {
+    background-color: #fffdfd;
+    border-radius: 20px;
+    padding: 1.5em;
+    margin-top: 1.2em;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+}
+.sentiment-box {
+    border: 1px solid #edd4ca;
+    padding: 0.4em 0.8em;
+    border-radius: 10px;
+    display: inline-block;
+    font-weight: 500;
+    margin-top: 1em;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def get_star_rating(score): #FOR A SENTIMENT SCORE WITH STARS
+    normalized = (score + 1) / 2 * 5  # Convert -1..1 to 0..5 scale #switched the scale from -1..1 to 0..5. 
+    stars = int(round(normalized))#add stars for visual aspect
+    return "★" * stars + "☆" * (5 - stars)
+
+st.markdown(f"""
+<div class='sentiment-box'>Sentiment: {get_star_rating(score)}</div>
+""", unsafe_allow_html=True)
