@@ -1,0 +1,44 @@
+import streamlit as st
+import requests
+from textblob import TextBlob
+
+# Title of your app
+st.title("📰 Simple News Aggregator (Clickable Articles)")
+
+# Fetch news data from NewsAPI
+def fetch_news(api_key="5a3db5e60eca4943ab7c723d64f69754", topic="business"):
+    url = f"https://newsapi.org/v2/everything?q={topic}&apiKey={api_key}"
+    response = requests.get(url)
+    news_data = response.json()
+    return news_data["articles"]
+
+# Dropdown to select topic
+topic = st.selectbox("Choose a topic:", ["business", "technology", "sports"])
+
+if st.button("Load News"):
+    st.write(f"🔍 Fetching {topic} news...")
+    articles = fetch_news(topic=topic)
+
+    for article in articles[:5]:  # Show top 5 news items
+        # Create a clickable container for each article
+        with st.container():
+            # Make the entire title clickable
+            st.markdown(
+                f"<a href='{article['url']}' target='_blank' style='text-decoration:none; color:inherit;'>"
+                f"<h2 style='margin-bottom:0;'>{article['title']}</h2>"
+                f"</a>",
+                unsafe_allow_html=True
+            )
+            
+            st.caption(f"📰 Source: {article['source']['name']} | 🕒 Published: {article['publishedAt']}")
+            st.write(article['description'])
+            
+            # Sentiment Analysis
+            sentiment = TextBlob(article["title"]).sentiment.polarity
+            sentiment_emoji = "😊" if sentiment > 0 else "😐" if sentiment == 0 else "😞"
+            st.write(f"{sentiment_emoji} Sentiment Score: {sentiment:.2f} (from -1 to 1)")
+            
+            # Optional: Add a separate button for mobile users
+            st.link_button("Read Full Article", article['url'])
+            
+            st.markdown("---")
