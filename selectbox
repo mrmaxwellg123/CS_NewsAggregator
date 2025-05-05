@@ -1,1 +1,1 @@
-topic = st.selectbox("", ["technology", "science", "business", "design"])
+topic = st.selectbox("", ["technology", "science", "business", "culture", "politics", "entertainment", "fashion", "environment", "sport", "weather"])
