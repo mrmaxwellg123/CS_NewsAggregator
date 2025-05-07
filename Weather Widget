@@ -1,1 +1,41 @@
+# ─── Weather Widget ──────────────────────────────────────────
+import datetime
 
+weather_api_key = "77980972ee507d6c33327f8f29094843"
+
+def get_lat_lon(city):
+    geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={weather_api_key}"
+    response = requests.get(geo_url)
+    data = response.json()
+    if data:
+        return data[0]['lat'], data[0]['lon']
+    return None, None
+
+def get_weather_data(lat, lon):
+    weather_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude=minutely,hourly,alerts&units=metric&appid={weather_api_key}"
+    response = requests.get(weather_url)
+    return response.json()
+
+def display_weather_widget():
+    st.sidebar.markdown("## 🌦️ Local Weather")
+    city = st.sidebar.text_input("Enter your city", value="Berlin")
+
+    if city:
+        lat, lon = get_lat_lon(city)
+        if lat is not None and lon is not None:
+            weather = get_weather_data(lat, lon)
+            current = weather['current']
+            forecast = weather['daily'][:3]
+
+            st.sidebar.markdown(f"**Now:** {current['temp']}°C, *{current['weather'][0]['description'].title()}*")
+            st.sidebar.markdown("**Next 3 Days:**")
+
+            for day in forecast:
+                date = datetime.datetime.fromtimestamp(day['dt']).strftime('%A')
+                icon = day['weather'][0]['icon']
+                icon_url = f"http://openweathermap.org/img/wn/{icon}.png"
+                temp = day['temp']['day']
+                desc = day['weather'][0]['description'].title()
+                st.sidebar.markdown(f"{date}: {temp}°C, {desc} ![]({icon_url})")
+        else:
+            st.sidebar.warning("City not found. Try another.")
