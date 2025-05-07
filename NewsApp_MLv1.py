@@ -4,6 +4,7 @@ import random
 # Load the model and vectorizer
 import joblib
 import datetime
+import base64
 
 weather_api_key = "d201d1ee23401c4935786b942c7f26b7"
 
@@ -187,6 +188,15 @@ def get_star_rating(score):
 
 
 
+logo_path = "Logo.png"  # Update if needed
+with open(logo_path, "rb") as image_file:
+    encoded_logo = base64.b64encode(image_file.read()).decode()
+
+st.markdown(f"""
+<div style="position: absolute; top: 0px; left: 60px; z-index: 9999;">
+    <img src="data:image/png;base64,{encoded_logo}" width="180"/>
+</div>
+""", unsafe_allow_html=True)
 
 
 
