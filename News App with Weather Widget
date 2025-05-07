@@ -4,19 +4,27 @@ from textblob import TextBlob
 import random
 import datetime
 
-weather_api_key = "77980972ee507d6c33327f8f29094843"
+weather_api_key = "d201d1ee23401c4935786b942c7f26b7"
 
 def get_lat_lon(city):
     geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={weather_api_key}"
     response = requests.get(geo_url)
     data = response.json()
-    if data:
+    
+    if isinstance(data, list) and data:
         return data[0]['lat'], data[0]['lon']
-    return None, None
+    else:
+        st.sidebar.warning("Could not find city location. Check spelling or API key.")
+        return None, None
 
 def get_weather_data(lat, lon):
-    weather_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude=minutely,hourly,alerts&units=metric&appid={weather_api_key}"
+    weather_url = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude=minutely,hourly,alerts&units=metric&appid={weather_api_key}"
     response = requests.get(weather_url)
+    
+    # Debug info in sidebar:
+    st.sidebar.text(f"API Status: {response.status_code}")
+    st.sidebar.text(f"API Response: {response.text[:300]}")  # First 300 chars of the response
+    
     return response.json()
 
 def display_weather_widget():
@@ -24,24 +32,20 @@ def display_weather_widget():
     city = st.sidebar.text_input("Enter your city", value="Berlin")
 
     if city:
-        lat, lon = get_lat_lon(city)
-        if lat is not None and lon is not None:
-            weather = get_weather_data(lat, lon)
-            current = weather['current']
-            forecast = weather['daily'][:3]
+        weather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid={weather_api_key}"
+        response = requests.get(weather_url)
+        data = response.json()
 
-            st.sidebar.markdown(f"**Now:** {current['temp']}°C, *{current['weather'][0]['description'].title()}*")
-            st.sidebar.markdown("**Next 3 Days:**")
+        if response.status_code == 200:
+            temp = data["main"]["temp"]
+            description = data["weather"][0]["description"].title()
+            icon = data["weather"][0]["icon"]
+            icon_url = f"http://openweathermap.org/img/wn/{icon}@2x.png"
 
-            for day in forecast:
-                date = datetime.datetime.fromtimestamp(day['dt']).strftime('%A')
-                icon = day['weather'][0]['icon']
-                icon_url = f"http://openweathermap.org/img/wn/{icon}.png"
-                temp = day['temp']['day']
-                desc = day['weather'][0]['description'].title()
-                st.sidebar.markdown(f"{date}: {temp}°C, {desc} ![]({icon_url})")
+            st.sidebar.markdown(f"**Now:** {temp}°C, *{description}*")
+            st.sidebar.image(icon_url, width=75)
         else:
-            st.sidebar.warning("City not found. Try another.")
+            st.sidebar.warning("City not found or API key invalid.")
 
 
 st.set_page_config(page_title="katchupOTN", layout="centered")
@@ -101,6 +105,22 @@ div[data-baseweb="tag"] {
     font-family: 'Georgia', serif !important;
     font-size: 0.95em !important;
 }
+/* Make sidebar background and text match the site */
+section[data-testid="stSidebar"] > div:first-child {
+    background-color: #2C2C54 !important;
+    color: #ECECEC !important;
+    padding: 1em;
+    height: 100%;
+}
+section[data-testid="stSidebar"] * {
+    color: #ECECEC !important;
+}
+section[data-testid="stSidebar"] input {
+    color: #2C2C54 !important;  /* dark blue */
+    background-color: #ECECEC !important;  /* light gray background */
+    border: 1px solid #2C2C54 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -145,6 +165,7 @@ def get_star_rating(score):
     return "★" * stars + "☆" * (5 - stars)
 
 # UI layout
+display_weather_widget()
 st.markdown("<h1 style='text-align: center;'>KatchupOTN</h1>", unsafe_allow_html=True)
 st.markdown("<h3 class='white-text' style='text-align: center; margin-top: -1em;'>Choose a topic:</h3>", unsafe_allow_html=True)
 
@@ -172,9 +193,7 @@ selected_subtopics = st.multiselect("Select subtopics to refine:", subtopics)
 query_terms = list(set(main_topics + selected_subtopics))
 query = " OR ".join(query_terms)
 
-display_weather_widget()
 st.markdown("<h3 class='white-text'>Trending News</h3>", unsafe_allow_html=True)
-
 
 def fetch_news(query):
     articles = []
@@ -234,4 +253,5 @@ if query_terms:
         st.write("No articles found.")
 else:
     st.write("Please select at least one main topic or subtopic.")
+
 
