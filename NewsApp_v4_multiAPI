@@ -5,7 +5,7 @@ import random
 
 st.set_page_config(page_title="katchupOTN", layout="centered")
 
-# Custom styling
+#Custom styling
 st.markdown("""
 <style>
 .stApp {
@@ -60,6 +60,20 @@ div[data-baseweb="tag"] {
     font-family: 'Georgia', serif !important;
     font-size: 0.95em !important;
 }
+
+/* Override the color of selected tags in multiselect */
+[data-baseweb="tag"] {
+    background-color: #474787 !important;  /* Set your desired color */
+    color: #FFFFFF !important;             /* Text color for contrast */
+    border-radius: 12px !important;
+    font-weight: bold;
+}
+
+/* Force white color for form labels */
+label, .stSelectbox label, .stMultiSelect label {
+    color: #FFFFFF !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -116,8 +130,7 @@ categories = {
     "Fashion": ["Trends", "Designers", "Runways", "Met Gala"],
     "Politics": ["Elections", "Policy", "Diplomacy"],
     "Science": ["Space", "Biotech", "Research", "Physics", "Chemistry"],
-    "Sport": ["Basketball", "Cricket", "Football", "Swimming", "Olympics"],
-    "Weather": ["Forecast", "Air Quality", "Wind", "UV Index"]
+    "Sport": ["Basketball", "Cricket", "Football", "Swimming", "Olympics"]
 }
 
 main_topics = st.multiselect("Select one or more main topics:", list(categories.keys()))
@@ -154,6 +167,8 @@ def fetch_news(query):
                 raw_articles = []
 
             for a in raw_articles:
+                if not isinstance(a, dict): #this fixes the issue that the script is rate-limited
+                    continue
                 title = a.get("title") or ""
                 description = a.get("description") or a.get("content", "")
                 url = a.get("url", "#")
@@ -175,7 +190,7 @@ def fetch_news(query):
             st.warning(f"⚠️ Could not load from {name}: {str(e)}")
     return articles
 
-# Rendering updated article layout
+#Rendering updated article layout
 if query_terms:
     all_articles = fetch_news(query)
     if all_articles:
