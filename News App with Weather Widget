@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from textblob import TextBlob
 import random
+
+
 import datetime
 
 weather_api_key = "d201d1ee23401c4935786b942c7f26b7"
@@ -46,6 +48,13 @@ def display_weather_widget():
             st.sidebar.image(icon_url, width=75)
         else:
             st.sidebar.warning("City not found or API key invalid.")
+
+
+
+
+
+
+
 
 
 st.set_page_config(page_title="katchupOTN", layout="centered")
@@ -165,7 +174,16 @@ def get_star_rating(score):
     return "★" * stars + "☆" * (5 - stars)
 
 # UI layout
+
+
+
+
 display_weather_widget()
+
+
+
+
+
 st.markdown("<h1 style='text-align: center;'>KatchupOTN</h1>", unsafe_allow_html=True)
 st.markdown("<h3 class='white-text' style='text-align: center; margin-top: -1em;'>Choose a topic:</h3>", unsafe_allow_html=True)
 
