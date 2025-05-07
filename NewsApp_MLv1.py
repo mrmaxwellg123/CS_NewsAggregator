@@ -29,7 +29,20 @@ def get_weather_data(lat, lon):
     return response.json()
 
 def display_weather_widget():
-    st.sidebar.markdown("## 🌦️ Local Weather")
+    st.sidebar.markdown("## 🌦️ <span style='color:#9f9fa3'>Local Weather</span>", unsafe_allow_html=True)
+    
+    st.markdown(
+        """
+        <style>
+        section[data-testid="stSidebar"] label {
+            color: #9f9fa3 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
     city = st.sidebar.text_input("Enter your city", value="Berlin")
 
     if city:
@@ -173,8 +186,7 @@ def get_star_rating(score):
 
 
 
-# Display it (you can change width or positioning as needed)
-st.image(logo, width=200)  # Adjust width to fit your layout
+
 
 
 
