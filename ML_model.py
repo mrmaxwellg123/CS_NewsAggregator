@@ -30,7 +30,7 @@ classifier.fit(X_train_vec, y_train) #train the model
 
 #predicts the rating for the test set and makes a report
 rating_predictor = classifier.predict(X_test_vec)
-print(classification_report(y_test, y_pred))
+print(classification_report(y_test, rating_predictor))
 
 #saves the model and the vectorizer
 import joblib
