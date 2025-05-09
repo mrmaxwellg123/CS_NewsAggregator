@@ -220,7 +220,7 @@ categories = {
     "Business": ["Startups", "Markets", "Investments"],
     "Culture": ["Art", "Museums", "History"],
     "Economics": ["Inflation", "GDP", "Trade"],
-    "Entertainment": ["Movies", "TV Shows", "Celebrities"],
+    "Entertainment": ["Movies", "TV Shows", "Celebrities", "Music"],
     "Environment": ["Climate", "Wildlife", "Pollution"],
     "Fashion": ["Trends", "Designers", "Runways", "Met Gala"],
     "Politics": ["Elections", "Policy", "Diplomacy"],
@@ -318,7 +318,7 @@ def show_sentiment_chart_by_category():
     df = pd.DataFrame(list(avg_sentiments.items()), columns=["Category", "Avg Sentiment"])
     df = df.sort_values(by="Avg Sentiment", ascending=False)
 
-    st.sidebar.markdown("## 📊 <span style='color:#9f9fa3'>Sentiment by Category</span>", unsafe_allow_html=True)
+    st.sidebar.markdown("## 📊 <span style='color:#9f9fa3'>Sentiment of today</span>", unsafe_allow_html=True)
     st.sidebar.bar_chart(df.set_index("Category"))
 
 show_sentiment_chart_by_category()
