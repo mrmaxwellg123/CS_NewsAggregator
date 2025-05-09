@@ -279,7 +279,7 @@ def fetch_trending_news():
     try:
         query = "trending OR breaking OR popular" #search query that tries to find trending, popular or breaking news
         articles = fetch_news(query)
-        return articles[:10] #limits to showing the first 10 articles
+        return articles[:20] #limits to showing the first 10 articles
     except Exception as e:
         st.error(f"Failed to load trending news: {e}") #eeror message if something doesnt work
         return []
