@@ -298,7 +298,7 @@ def fetch_articles_by_category():
         query_terms = [category] + subtopics
         query = " OR ".join(query_terms)
         articles = fetch_news(query)
-        category_articles[category] = articles[:20]  # limit to 20 per category to avoid overload
+        category_articles[category] = articles[:10]  # limit to 20 per category to avoid overload
     return category_articles
 
 def compute_avg_sentiments(category_articles):
