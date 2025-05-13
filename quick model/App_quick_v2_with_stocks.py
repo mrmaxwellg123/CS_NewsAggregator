@@ -61,6 +61,43 @@ def display_weather(): #function that shows weather in Webapp
             st.sidebar.warning("City not found or API limit has been reached.") #gives an error mesage if API request fails
 
 
+# 📈 STOCK MARKET TRACKER (SIDEBAR EXPANDER)
+with st.sidebar.expander("📈 Stock Market Tracker"):
+    alpha_vantage_api = "KQO0G7C6CFBFTLN2"  # Updated API key
+
+    def get_stock_data(ticker):
+        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}&apikey={alpha_vantage_api}"
+        response = requests.get(url)
+        data = response.json()
+        if "Time Series (Daily)" not in data:
+            return None
+        time_series = data["Time Series (Daily)"]
+        df = pd.DataFrame.from_dict(time_series, orient="index").sort_index()
+        df = df.rename(columns={
+            "1. open": "Open",
+            "2. high": "High",
+            "3. low": "Low",
+            "4. close": "Close",
+            "5. volume": "Volume"
+        })
+        df = df.astype(float)
+        return df
+
+    ticker_input = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA, MSFT):", value="AAPL", key="sidebar_ticker")
+
+    if ticker_input:
+        stock_df = get_stock_data(ticker_input.upper())
+        if stock_df is not None:
+            current_price = stock_df["Close"].iloc[-1]
+            prev_price = stock_df["Close"].iloc[-2]
+            pct_change = ((current_price - prev_price) / prev_price) * 100
+            st.metric(label="Current Price", value=f"${current_price:.2f}", delta=f"{pct_change:.2f}%")
+            st.line_chart(stock_df["Close"].tail(30))
+        else:
+            st.error("Failed to retrieve stock data. Please check the ticker symbol.")
+
+
+
 # Load pre-trained sentiment analysis model and vectorizer
 clf = joblib.load("model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
@@ -586,43 +623,3 @@ def fetch_relevant_news(main_topics, subtopics):
     return aggregated_articles[:20]  # Limit to 20 relevant articles
 
 # News API logic END
-
-
-
-# ===============================
-# 📈 STOCK MARKET TRACKER (SIDEBAR EXPANDER)
-# ===============================
-
-with st.sidebar.expander("📈 Stock Market Tracker"):
-    alpha_vantage_api = "KQO0G7C6CFBFTLN2"  # Updated API key
-
-    def get_stock_data(ticker):
-        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}&apikey={alpha_vantage_api}"
-        response = requests.get(url)
-        data = response.json()
-        if "Time Series (Daily)" not in data:
-            return None
-        time_series = data["Time Series (Daily)"]
-        df = pd.DataFrame.from_dict(time_series, orient="index").sort_index()
-        df = df.rename(columns={
-            "1. open": "Open",
-            "2. high": "High",
-            "3. low": "Low",
-            "4. close": "Close",
-            "5. volume": "Volume"
-        })
-        df = df.astype(float)
-        return df
-
-    ticker_input = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA, MSFT):", value="AAPL", key="sidebar_ticker")
-
-    if ticker_input:
-        stock_df = get_stock_data(ticker_input.upper())
-        if stock_df is not None:
-            current_price = stock_df["Close"].iloc[-1]
-            prev_price = stock_df["Close"].iloc[-2]
-            pct_change = ((current_price - prev_price) / prev_price) * 100
-            st.metric(label="Current Price", value=f"${current_price:.2f}", delta=f"{pct_change:.2f}%")
-            st.line_chart(stock_df["Close"].tail(30))
-        else:
-            st.error("Failed to retrieve stock data. Please check the ticker symbol.")
