@@ -61,7 +61,7 @@ def display_weather(): #function that shows weather in Webapp
             st.sidebar.warning("City not found or API limit has been reached.") #gives an error mesage if API request fails
 
 
-# 📈 STOCK MARKET TRACKER (SIDEBAR EXPANDER)
+# STOCK MARKET TRACKER (SIDEBAR EXPANDER)
 with st.sidebar.expander("📈 Stock Market Tracker"):
     alpha_vantage_api = "KQO0G7C6CFBFTLN2"  # Updated API key
 
