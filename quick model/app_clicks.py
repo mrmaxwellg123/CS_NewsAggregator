@@ -306,13 +306,16 @@ sub_categories = [] #empty list for sub_categories
 #define function that will fetch news give the query
 import random
 
+#Go through each API setup (like name + config)
 def fetch_news(query):
     articles = []
     for name, cfg in api_mapping.items():
         try:
+            #Sends a request to the API using its URL and API key
             response = requests.get(cfg["url"](query, cfg["key"]))
             data = response.json()
 
+             #Handles how each API formats its response
             if name == "NewsAPI":
                 raw_articles = data.get("articles", [])
                 raw_articles = raw_articles[:2] if isinstance(raw_articles, list) else []
@@ -329,12 +332,14 @@ def fetch_news(query):
                 raw_articles = data.get("data", [])
                 raw_articles = raw_articles[:2] if isinstance(raw_articles, list) else []
             elif name == "NYTimes":
+                #because NYT structure is a bit different
                 raw_articles = data.get("response", {}).get("docs", [])[:2]
                 for a in raw_articles:
                     title = a.get("headline", {}).get("main", "")
                     description = a.get("snippet", "")
                     url = a.get("web_url", "#")
                     published_at = a.get("pub_date", "")
+                    #This only keeps articles that have both their title and description
                     if title and description:
                         sentiment = predict_sentiment(description)
                         articles.append({
@@ -347,14 +352,18 @@ def fetch_news(query):
                         })
                 continue
             elif name == "Guardian":
-                raw_articles = data.get("response", {}).get("results", [])[:2]
+                #This extracts articles from Guardian API response
+                raw_articles = data.get("response", {}).get("results", [])[:2] #This limits it to first 2 articles
                 for a in raw_articles:
-                    title = a.get("webTitle", "")
-                    description = a.get("fields", {}).get("trailText", "")
-                    url = a.get("webUrl", "#")
-                    published_at = a.get("webPublicationDate", "")
+                    #Extracts article fields safely by using .get()
+                    title = a.get("webTitle", "")  #Headline of Article
+                    description = a.get("fields", {}).get("trailText", "") #Article summary
+                    url = a.get("webUrl", "#") #URL to the full article
+                    published_at = a.get("webPublicationDate", "")  #Publication date
                     if title and description:
+                        #This predicts sentiment of the article summary
                         sentiment = predict_sentiment(description)
+                        #Appends article dictionary to the list with relevant metadata
                         articles.append({
                             "title": title,
                             "desc": description,
@@ -369,16 +378,25 @@ def fetch_news(query):
 
             for a in raw_articles:
                 if not isinstance(a, dict):
-                    continue
+                    continue #Skips any article that isn't a dictionary
+                #This Safely extracts article title, or default to empty string
                 title = a.get("title") or ""
+                #Tries to get description, or fallback to content
                 description = a.get("description") or a.get("content", "")
+                #extracts the article URL, or default to "#"
                 url = a.get("url", "#")
+                #Extracts the source name if the 'source' is a dict; otherwise fallback to current API name
                 source = a.get("source", {}).get("name") if isinstance(a.get("source"), dict) else a.get("source", name)
+                #Try to extract the publication date from different fields
                 published_at = a.get("publishedAt") or a.get("published") or ""
+                #If the publication date has a time component, it formats it nicely
                 if published_at and "T" in published_at:
                     published_at = published_at.split("T")[0] + "T" + published_at.split("T")[1].split("Z")[0] + "Z"
+                #Only include articles that have both title and description
                 if title and description:
+                    #Predicts sentiment of the article description using our model
                     sentiment = predict_sentiment(description)
+                    #Appends this article with all the structured fields
                     articles.append({
                         "title": title,
                         "desc": description,
@@ -397,13 +415,16 @@ def fetch_news(query):
 
 
 
-#function to get tranding news
+#function to get trending news
 def fetch_trending_news():
     try:
+        #Defines a query that targets trending content
         query = "trending OR breaking OR popular"
-        articles = fetch_news(query)  # This already fetches 2 per API and shuffles
+        #Uses our existing fetch_news function to get articles
+        articles = fetch_news(query)  #This already fetches 2 per API and shuffles them
         return articles
     except Exception as e:
+        #Displays an error in the Streamlit app if something goes wrong
         st.error(f"Failed to load trending news: {e}")
         return []
 
@@ -411,46 +432,59 @@ def fetch_trending_news():
 
 from collections import defaultdict
 
-def fetch_articles_by_category():
-    category_articles = {}
+#Function to get news grouped by category
+def fetch_articles_by_category(): 
+    category_articles = {} #Dictionary to store articles per category
+    #Loops through each main category and its subtopics
     for category, subtopics in categories.items():
-        # Build a query from category and subtopics
+        #Combine the category and its subtopics into one list of search terms
         query_terms = [category] + subtopics
+        #Builds a search query string using OR between terms
         query = " OR ".join(query_terms)
+        #Fetches articles using the combined query
         articles = fetch_news(query)
+        #Stores the first 10 articles for this category to avoid overload
         category_articles[category] = articles[:10]  # limit to 20 per category to avoid overload
     return category_articles
 
 def compute_avg_sentiments(category_articles):
-    avg_sentiments = {}
+    avg_sentiments = {} #Will store average sentiment per category
+    #Loops through each category and its list of articles
     for category, articles in category_articles.items():
+        #collects sentiment scores from articles that include one
         sentiments = [art['sentiment'] for art in articles if 'sentiment' in art]
+        #Calculates average sentiment if available, otherwise assign 0
         if sentiments:
             avg_sentiments[category] = sum(sentiments) / len(sentiments)
         else:
             avg_sentiments[category] = 0
     return avg_sentiments
 
-@st.cache_data(ttl=86400, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False) #Cache for 24 hours to improve speed
 def fetch_all_articles_for_sentiment():
-    all_articles = []
+    all_articles = [] #Combined list of all articles
+    #Loop through all categories and fetch their articles
     for category in categories:
         articles = fetch_news(category)
-        all_articles.extend(articles)
+        all_articles.extend(articles) #Adds to global list
     return all_articles
 
 def categorize_article(article_title):
     """Categorize article based on best match to subtopics or main categories."""
-    title_lower = article_title.lower()
-    scores = {}
+    title_lower = article_title.lower() #Converts to lowercase for easier matching
+    scores = {} #Will hold match scores per category
 
+    #Loops through every category and its list of subtopics
     for category, subtopics in categories.items():
         score = 0
+        #If the main category appears in the title, give it 2 points
         if category.lower() in title_lower:
             score += 2
+        #If any subtopics appear in the title, give 1 point each
         for sub in subtopics:
             if sub.lower() in title_lower:
                 score += 1
+        #Only store scores for categories that matched something
         if score > 0:
             scores[category] = score
 
@@ -459,26 +493,33 @@ def categorize_article(article_title):
 
 def show_sentiment_by_category():
     all_articles = fetch_all_articles_for_sentiment()
+    #Get all articles across all categories (with cached fetch function)
 
+    #Initializes a dictionary to store sentiment lists by category
     category_sentiments = {cat: [] for cat in categories}
+    #Loops through all articles
     for article in all_articles:
+        #Assigns article to a category based on its title
         cat = categorize_article(article['title'])
+        #If valid category, store its sentiment
         if cat and cat in category_sentiments:
             category_sentiments[cat].append(article['sentiment'])
 
-    # Compute average sentiment
+    #Computes average sentiment per category, rounded to 2 decimal places
     sentiment_avg = {
         cat: round(sum(scores) / len(scores), 2) if scores else 0
         for cat, scores in category_sentiments.items()
     }
 
+    #Converts results to a DataFrame and sort by sentiment
     df = pd.DataFrame(sentiment_avg.items(), columns=["Category", "Avg Sentiment"])
     df = df.sort_values(by="Avg Sentiment", ascending=False)
 
+    #This displays sentiment chart in sidebar
     st.sidebar.markdown("## 📊 <span style='color:#9f9fa3'>Average Sentiment by Category</span>", unsafe_allow_html=True)
     st.sidebar.bar_chart(df.set_index("Category"))
 
-# Show sentiment chart only once using cached data
+#Show sentiment chart only once using cached data
 if "sentiment_chart_shown" not in st.session_state:
     show_sentiment_by_category()
     st.session_state["sentiment_chart_shown"] = True
@@ -552,18 +593,18 @@ def fetch_news_from_all_apis(topic, apis):
         try:
             articles = api_func(topic)
 
-            # Ensure it's a list of articles
+            #Ensure it's a list of articles
             if isinstance(articles, list) and articles:
                 all_articles.extend(articles)
 
         except Exception:
-            # If one API fails (e.g., due to rate limits), skip it silently
+            #If one API fails (e.g., due to rate limits), skip it silently
             continue
 
     return all_articles
 
 
-# News API logic START
+#News API logic START
 
 import logging
 
@@ -577,18 +618,18 @@ news_api_keys = [
     "q1CZm3cld8KWD79kF2Zt1sUoC2ilCbPfkRLX57ME"
 ]
 
-# Base URLs for known providers
+#Base URLs for known providers
 api_sources = [
-    "https://newsdata.io/api/1/news",  # newsdata.io
-    "https://api.thenewsapi.com/v1/news/top",  # thenewsapi
-    "https://gnews.io/api/v4/top-headlines",  # gnews
-    "https://newsapi.org/v2/top-headlines",  # newsapi
-    "https://api.currentsapi.services/v1/latest-news",  # currentsapi
-    "https://newsdata.io/api/1/news",  # reused with different key
-    "https://api.thenewsapi.com/v1/news/all"  # fallback source
+    "https://newsdata.io/api/1/news",  #newsdata.io
+    "https://api.thenewsapi.com/v1/news/top",  #thenewsapi
+    "https://gnews.io/api/v4/top-headlines",  #gnews
+    "https://newsapi.org/v2/top-headlines",  #newsapi
+    "https://api.currentsapi.services/v1/latest-news",  #currentsapi
+    "https://newsdata.io/api/1/news",  #reused with different key
+    "https://api.thenewsapi.com/v1/news/all"  #fallback source
 ]
 
-# Map of topic relevance keywords (could be expanded)
+#Map of topic relevance keywords (could be expanded)
 topic_keywords = {
     "Business": ["business", "finance", "corporate", "startup"],
     "Culture": ["art", "culture", "heritage", "music"],
@@ -625,7 +666,7 @@ def fetch_relevant_news(main_topics, subtopics):
                 elif "currentsapi" in url:
                     response = requests.get(url, params={"apiKey": key, "keywords": keyword, "language": "en"})
                 else:
-                    continue  # Unknown API pattern
+                    continue  #Unknown API pattern
 
                 if response.status_code == 200:
                     data = response.json()
@@ -635,6 +676,6 @@ def fetch_relevant_news(main_topics, subtopics):
                 logging.warning(f"API failed for keyword {keyword} with key {key}: {str(e)}")
                 continue
 
-    return aggregated_articles[:20]  # Limit to 20 relevant articles
+    return aggregated_articles[:20]  #Limit to 20 relevant articles
 
-# News API logic END
+#News API logic END
