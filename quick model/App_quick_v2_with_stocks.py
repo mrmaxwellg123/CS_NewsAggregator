@@ -268,8 +268,9 @@ st.markdown(f"""
 display_weather()
 
 
-
+#This adds the big centered title at the top of the webpage
 st.markdown("<h1 style='text-align: center;'>KatchupOTN</h1>", unsafe_allow_html=True) #title of the main page, centered
+#This adds the subtitle underneath the main title
 st.markdown("<h3 class='white-text' style='text-align: center; margin-top: 0em;'>Choose a topic:</h3>", unsafe_allow_html=True) #subtitle telling user to pick a topic in h3 header
 
 #dictionary where the key is the main category and the value is the subtopic
@@ -293,11 +294,14 @@ import random
 
 def fetch_news(query):
     articles = []
+    #Go through each API setup (like name + configuration)
     for name, cfg in api_mapping.items():
         try:
+            #Sends a request to the API using its URL and API key 
             response = requests.get(cfg["url"](query, cfg["key"]))
             data = response.json()
 
+            #Handles how each API formats its response
             if name == "NewsAPI":
                 raw_articles = data.get("articles", [])
                 raw_articles = raw_articles[:2] if isinstance(raw_articles, list) else []
@@ -314,12 +318,14 @@ def fetch_news(query):
                 raw_articles = data.get("data", [])
                 raw_articles = raw_articles[:2] if isinstance(raw_articles, list) else []
             elif name == "NYTimes":
+                #We had to do this, because NYT has a different structure
                 raw_articles = data.get("response", {}).get("docs", [])[:2]
                 for a in raw_articles:
                     title = a.get("headline", {}).get("main", "")
                     description = a.get("snippet", "")
                     url = a.get("web_url", "#")
                     published_at = a.get("pub_date", "")
+                    #This makes sure that it only keeps articles that have both title and description
                     if title and description:
                         sentiment = predict_sentiment(description)
                         articles.append({
