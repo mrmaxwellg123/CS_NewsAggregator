@@ -56,7 +56,7 @@ Your browser will open the app interface automatically.
 ### To train the sentiment model (only once):
 
 ```bash
-python ML.py
+python train_model.py
 ```
 
 This creates:
