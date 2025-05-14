@@ -17,7 +17,7 @@ vectorizer = TfidfVectorizer(max_features=10000, stop_words="english") #keep the
 X_train_vec = vectorizer.fit_transform(X_train) #puts into sparse matrix
 
 #train and save the model
-clf = LogisticRegression(max_iter=1000, multinomial="multinomial", solver="lbfgs") #solver/multinomial parameters coded with help from ChatGPT (OpenAI, 2025)
+clf = LogisticRegression(max_iter=1000, multi_class="multinomial", solver="lbfgs") #solver/multinomial parameters coded with help from ChatGPT (OpenAI, 2025)
 clf.fit(X_train_vec, y_train) #train
 
 #save model and vectorizer to files
