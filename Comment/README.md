@@ -26,7 +26,7 @@ cd Downloads
 cd CS_NewsAggregator
 ```
 
-Make sure you are in the folder where `app.py` and other files are located.
+Make sure you are in the folder where `NewsApp.py` and other files are located.
 
 ---
 
@@ -44,7 +44,7 @@ pip install streamlit scikit-learn pandas joblib datasets requests
 Once setup is complete, launch the app with:
 
 ```bash
-streamlit run app.py
+streamlit run NewsApp.py
 ```
 
 Your browser will open the app interface automatically.
@@ -56,7 +56,7 @@ Your browser will open the app interface automatically.
 ### To train the sentiment model (only once):
 
 ```bash
-python ML_model.py
+python ML.py
 ```
 
 This creates:
