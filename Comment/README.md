@@ -39,11 +39,11 @@ pip install streamlit scikit-learn pandas joblib datasets requests
 
 ---
 
-### Step 4: Run the Streamlit app
+
 
 Once setup is complete, launch the app with:
 
-```bash
+
 streamlit run NewsApp.py
 ```
 
