@@ -68,7 +68,4 @@ This creates:
 ```bash
 python test_model.py
 ```
-
-This prints accuracy, precision, and F1-scores in the terminal using Yelp test data.
-
 ---
