@@ -270,7 +270,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-#adds weather widget to the sidebar of Webapp
+#adds weather widget to the sidebar of our Webapp
 display_weather()
 
 
@@ -533,15 +533,15 @@ if main_categories or selected_subtopics:
 else:
     st.header("Trending News")
 
-#combines the main and subcateories into one list, removing duplicates with set
+#combines the main and subcategories into one list, removing duplicates with set
 query_terms = list(set(main_categories + selected_subtopics))
 
-#if user didnt select any topics
+#if user didn't select any topics
 #HTML/CSS styling was generated with the help of ChatGPT (OpenAI, 2025)
 if not query_terms:
     trending_articles = fetch_trending_news()
     for art in trending_articles:
-        stars = "★" * int(round(art['sentiment'])) + "☆" * (5 - int(round(art['sentiment']))) #translates sentiment score form numerical to stars
+        stars = "★" * int(round(art['sentiment'])) + "☆" * (5 - int(round(art['sentiment']))) #translates sentiment score from numerical to stars
         st.markdown(f"""
         <div class='news-card'>
             <h3 class='news-title'><a href="{art['url']}" target="_blank" style="color: #2C2C54; text-decoration: none;">{art['title']}</a></h3>
